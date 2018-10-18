@@ -8,7 +8,9 @@
 
 #import "RulerView.h"
 
+#ifndef ARGB
 #define ARGB(a, r, g, b)    [UIColor colorWithRed:r/255.0 green:g/255.0 blue:b/255.0 alpha:a]
+#endif
 
 #define kZDRulerTextColor ARGB(1, 128, 129, 130)       // 文字颜色
 #define kZDRulerShortLineColor ARGB(1, 128, 129, 130)  // 短线颜色
@@ -101,6 +103,33 @@ const NSString *kZDRulerUnit = @"￥";        ///< 单位
 
 @end
 
+/**
+ RulerCollectionView已废弃，另外有更好的解决办法 **
+ 
+ 解决：在减速时轻触scrollView会使减速立即停止，在scrollViewWillBeginDragging中setContentOffse和在scrollViewDidEndDecelerating中设置contentOffset会冲突。
+ 如果不使用RulerCollectionView，在滑到尺子的两端时使劲滑会感觉到明显的闪动，因为setContentOffset的动画还没结束。
+ 但使用RulerCollectionView后有个缺点就是在减速时不能继续连贯滑动
+ */
+NS_UNAVAILABLE @interface RulerCollectionView : UICollectionView
+@end
+
+@implementation RulerCollectionView
+
+- (BOOL)pointInside:(CGPoint)point withEvent:(UIEvent *)event
+{
+    if (self.isDecelerating) {
+        [UIView animateWithDuration:0.0001 animations:^{
+            [self setContentOffset:self.contentOffset];
+        } completion:^(BOOL finished) {
+            [self.delegate scrollViewDidEndDecelerating:self];
+        }];
+        return NO;
+    }
+    return YES;
+}
+
+@end
+
 @implementation EGORulerView
 
 
@@ -132,7 +161,7 @@ const NSString *kZDRulerUnit = @"￥";        ///< 单位
 - (void)setCurrentValueWithoutCallBack:(CGFloat)currentValue animated:(BOOL)animated
 {
     _currentValue = [self adjustCurrentValue:currentValue];
-    [_collectionView setContentOffset:CGPointMake((NSInteger)(_currentValue-_minRulerValue) * _stepDotNum , 0) animated:animated];
+    [_collectionView setContentOffset:CGPointMake((NSInteger)(_currentValue-_minRulerValue) * _stepDotNum , _collectionView.contentOffset.y) animated:animated];
 }
 
 - (void)setCurrentValue:(CGFloat)currentValue animated:(BOOL)animated
@@ -195,6 +224,7 @@ const NSString *kZDRulerUnit = @"￥";        ///< 单位
         view.type = 1;
         view.minValue = _step * (indexPath.row-1) * _intervalStepNum + _minRulerValue;
     }
+    
     view.stepDotNum = _stepDotNum;
     view.step = _step;
     view.intervalStepNum = _intervalStepNum;
@@ -214,6 +244,14 @@ const NSString *kZDRulerUnit = @"￥";        ///< 单位
     }
 }
 
+- (void)scrollViewWillBeginDragging:(UIScrollView *)scrollView
+{
+    //在滑到尺子的两端时使劲滑会感觉到明显的闪动，因为scrollViewDidEndDecelerating方法setContentOffset的动画还没结束。
+    if (scrollView.contentOffset.x > scrollView.contentSize.width - scrollView.frame.size.width || scrollView.contentOffset.x < 0) {
+        [scrollView setContentOffset:scrollView.contentOffset animated:NO];
+    }
+}
+
 - (void)scrollViewDidEndDragging:(UIScrollView *)scrollView willDecelerate:(BOOL)decelerate
 {
     if (!decelerate) {
@@ -224,7 +262,7 @@ const NSString *kZDRulerUnit = @"￥";        ///< 单位
 
 - (void)scrollViewDidEndDecelerating:(UIScrollView *)scrollView
 {
-    [self setCurrentValue:round(scrollView.contentOffset.x / _stepDotNum) + _minRulerValue animated:YES];
+    [self setCurrentValue:round(scrollView.contentOffset.x / self.stepDotNum) + self.minRulerValue animated:YES];
 }
 
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView
@@ -251,11 +289,11 @@ const NSString *kZDRulerUnit = @"￥";        ///< 单位
         _collectionView.dataSource = self;
         _collectionView.delegate = self;
         _collectionView.bounces = YES;
+        _collectionView.delaysContentTouches = NO;
         _collectionView.backgroundColor = [UIColor clearColor];
         [_collectionView registerClass:[UICollectionViewCell class] forCellWithReuseIdentifier:@"Cell"];
     }
     return _collectionView;
 }
-
 
 @end
