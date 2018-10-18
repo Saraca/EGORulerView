@@ -104,7 +104,7 @@ const NSString *kZDRulerUnit = @"￥";        ///< 单位
 @end
 
 /**
- RulerCollectionView已废弃，另外有更好的解决办法 **
+ RulerCollectionView已废弃，另外有更好的解决办法
  
  解决：在减速时轻触scrollView会使减速立即停止，在scrollViewWillBeginDragging中setContentOffse和在scrollViewDidEndDecelerating中设置contentOffset会冲突。
  如果不使用RulerCollectionView，在滑到尺子的两端时使劲滑会感觉到明显的闪动，因为setContentOffset的动画还没结束。
@@ -131,7 +131,6 @@ NS_UNAVAILABLE @interface RulerCollectionView : UICollectionView
 @end
 
 @implementation EGORulerView
-
 
 //MARK:- ❤ Public Method ❤
 - (void)configWithMaxValue:(CGFloat)maxValue minValue:(CGFloat)minValue step:(CGFloat)step stepDotNum:(CGFloat)stepDotNum intervalStepNum:(NSInteger)intervalStepNum
@@ -246,7 +245,7 @@ NS_UNAVAILABLE @interface RulerCollectionView : UICollectionView
 
 - (void)scrollViewWillBeginDragging:(UIScrollView *)scrollView
 {
-    //在滑到尺子的两端时使劲滑会感觉到明显的闪动，因为scrollViewDidEndDecelerating方法setContentOffset的动画还没结束。
+    // 在滑到尺子的两端时使劲滑会感觉到明显的闪动，因为scrollViewDidEndDecelerating方法setContentOffset的动画还没结束。
     if (scrollView.contentOffset.x > scrollView.contentSize.width - scrollView.frame.size.width || scrollView.contentOffset.x < 0) {
         [scrollView setContentOffset:scrollView.contentOffset animated:NO];
     }
