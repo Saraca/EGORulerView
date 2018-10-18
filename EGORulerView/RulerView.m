@@ -243,30 +243,38 @@ NS_UNAVAILABLE @interface RulerCollectionView : UICollectionView
     }
 }
 
-- (void)scrollViewWillBeginDragging:(UIScrollView *)scrollView
-{
-    // 在滑到尺子的两端时使劲滑会感觉到明显的闪动，因为scrollViewDidEndDecelerating方法setContentOffset的动画还没结束。
-    if (scrollView.contentOffset.x > scrollView.contentSize.width - scrollView.frame.size.width || scrollView.contentOffset.x < 0) {
-        [scrollView setContentOffset:scrollView.contentOffset animated:NO];
-    }
+// 滑动到指定的刻度位置
+- (void)scrollViewWillEndDragging:(UIScrollView *)scrollView withVelocity:(CGPoint)velocity targetContentOffset:(inout CGPoint *)targetContentOffset {
+    CGPoint target = CGPointMake(targetContentOffset->x, targetContentOffset->y);
+    CGFloat offset = round((target.x+scrollView.contentInset.left) / self.stepDotNum) * self.stepDotNum;
+    *targetContentOffset = CGPointMake(offset - scrollView.contentInset.left, target.y);
 }
 
-- (void)scrollViewDidEndDragging:(UIScrollView *)scrollView willDecelerate:(BOOL)decelerate
-{
-    if (!decelerate) {
-        // 释放拖动并没有减速动画时
-        [self setCurrentValue:round(scrollView.contentOffset.x / _stepDotNum) + _minRulerValue animated:YES];
-    }
-}
-
-- (void)scrollViewDidEndDecelerating:(UIScrollView *)scrollView
-{
-    [self setCurrentValue:round(scrollView.contentOffset.x / self.stepDotNum) + self.minRulerValue animated:YES];
-}
+// 实现上面的方法可以不用考虑下面三个方法的处理
+//- (void)scrollViewDidEndDragging:(UIScrollView *)scrollView willDecelerate:(BOOL)decelerate
+//{
+//    if (!decelerate) {
+//        // 释放拖动并没有减速动画时
+//        //[self setCurrentValue:round((scrollView.contentOffset.x+scrollView.contentInset.left) / _stepDotNum) + _minRulerValue animated:YES];
+//    }
+//}
+//
+//- (void)scrollViewDidEndDecelerating:(UIScrollView *)scrollView
+//{
+//    //[self setCurrentValue:round((scrollView.contentOffset.x+scrollView.contentInset.left) / _stepDotNum) + self.minRulerValue animated:YES];
+//}
+//
+//- (void)scrollViewWillBeginDragging:(UIScrollView *)scrollView
+//{
+//    // 在滑到尺子的两端时使劲滑会感觉到明显的闪动，因为scrollViewDidEndDecelerating方法setContentOffset的动画还没结束。
+////    if (scrollView.contentOffset.x > scrollView.contentSize.width - scrollView.frame.size.width || scrollView.contentOffset.x < 0) {
+////        [scrollView setContentOffset:scrollView.contentOffset animated:NO];
+////    }
+//}
 
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView
 {
-    _currentValue = [self adjustCurrentValue:round(scrollView.contentOffset.x / _stepDotNum) + _minRulerValue];
+    _currentValue = [self adjustCurrentValue:round((scrollView.contentOffset.x+scrollView.contentInset.left) / _stepDotNum) + _minRulerValue];
     if (_didSelectValue) {
         _didSelectValue(_currentValue);
     }
