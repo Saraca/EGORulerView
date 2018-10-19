@@ -24,7 +24,7 @@ const CGFloat kZDRulerMediumLineLength = 16; ///< 中长的线的长度
 const CGFloat kZDRulerLongLineLength  = 32;  ///< 长线的长度
 const CGFloat kZDRulerLineOffsetY  = 3;      ///< 线的垂直方向起始偏移量
 const CGFloat kZDRulerTextBottomOffset = 20; ///< 文字底部偏移量(包括了文字高度)
-const NSString *kZDRulerUnit = @"￥";        ///< 单位
+NSString *const kZDRulerUnit = @"";          ///< 单位
 
 
 @interface RulerItem : UIView
