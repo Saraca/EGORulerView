@@ -18,15 +18,17 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     
-    // 红线的中线
     __weak typeof(self) selfWeak = self;
-    [_rulerView configWithMaxValue:100 minValue:20 step:1 stepDotNum:10 intervalStepNum:10];
-    [_rulerView setDidSelectValue:^(CGFloat value) {
+    //[_rulerView configWithMinValue:103 maxValue:102 step:1 stepDotNum:10 intervalStepNum:10];
+    //[_rulerView configWithMinValue:9 maxValue:101 step:1 stepDotNum:10 intervalStepNum:10];
+    [_rulerView configWithMinValue:20 maxValue:220 step:1 stepDotNum:10 intervalStepNum:10];
+    [_rulerView setSelectValueBlock:^(CGFloat value) {
         selfWeak.labelValue.text = [NSString stringWithFormat:@"%.1f", value];
     }];
     
+    // 红线的中线
     UIView *redLine = [[UIView alloc]initWithFrame:CGRectMake(_rulerView.center.x - 1, 3, 2, 32)];
-    redLine.backgroundColor = [UIColor orangeColor];
+    redLine.backgroundColor = [UIColor redColor];
     [_rulerView addSubview:redLine];
 }
 

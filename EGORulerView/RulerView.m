@@ -24,7 +24,7 @@ const CGFloat kZDRulerMediumLineLength = 16; ///< 中长的线的长度
 const CGFloat kZDRulerLongLineLength  = 32;  ///< 长线的长度
 const CGFloat kZDRulerLineOffsetY  = 3;      ///< 线的垂直方向起始偏移量
 const CGFloat kZDRulerTextBottomOffset = 20; ///< 文字底部偏移量(包括了文字高度)
-NSString *const kZDRulerUnit = @"";          ///< 单位
+NSString *const kZDRulerUnit = @"厘米";       ///< 单位
 
 
 @interface RulerItem : UIView
@@ -133,7 +133,7 @@ NS_UNAVAILABLE @interface RulerCollectionView : UICollectionView
 @implementation EGORulerView
 
 //MARK:- ❤ Public Method ❤
-- (void)configWithMaxValue:(CGFloat)maxValue minValue:(CGFloat)minValue step:(CGFloat)step stepDotNum:(CGFloat)stepDotNum intervalStepNum:(NSInteger)intervalStepNum
+- (void)configWithMinValue:(CGFloat)minValue maxValue:(CGFloat)maxValue step:(CGFloat)step stepDotNum:(CGFloat)stepDotNum intervalStepNum:(NSInteger)intervalStepNum
 {
     if (maxValue <= minValue) {
         NSLog(@"<EGORulerView>: the 'maxValue' can't equal to or less than the 'minValue'.");
@@ -142,7 +142,7 @@ NS_UNAVAILABLE @interface RulerCollectionView : UICollectionView
     
     _maxValue = maxValue;
     _minValue = minValue;
-    _maxRulerValue = round(maxValue/intervalStepNum) * intervalStepNum;
+    _maxRulerValue = ceil(maxValue/intervalStepNum) * intervalStepNum;
     _minRulerValue = floor(minValue/intervalStepNum) * intervalStepNum;
     _step = step;
     _stepDotNum = stepDotNum;
@@ -166,8 +166,8 @@ NS_UNAVAILABLE @interface RulerCollectionView : UICollectionView
 - (void)setCurrentValue:(CGFloat)currentValue animated:(BOOL)animated
 {
     [self setCurrentValueWithoutCallBack:currentValue animated:animated];
-    if (_currentValue <= _maxValue && _currentValue >= _minValue && _didSelectValue) {
-        _didSelectValue(_currentValue);
+    if (_currentValue <= _maxValue && _currentValue >= _minValue && _selectValueBlock) {
+        _selectValueBlock(_currentValue);
     }
 }
 
@@ -212,23 +212,25 @@ NS_UNAVAILABLE @interface RulerCollectionView : UICollectionView
         // leading
         view.type = 0;
         view.maxValue = _minRulerValue;
+        [view setFrame:CGRectMake(0, 0, collectionView.frame.size.width/2, collectionView.frame.size.height)];
     }
     else if (indexPath.row == _itemCount + 1) {
         // trailing
         view.type = 2;
         view.minValue = _maxRulerValue;
+        [view setFrame:CGRectMake(0, 0, collectionView.frame.size.width/2, collectionView.frame.size.height)];
     }
     else {
         // normal ruler cell
         view.type = 1;
         view.minValue = _step * (indexPath.row-1) * _intervalStepNum + _minRulerValue;
+        [view setFrame:CGRectMake(0, 0, _stepDotNum * _intervalStepNum, collectionView.frame.size.height)];
     }
     
     view.stepDotNum = _stepDotNum;
     view.step = _step;
     view.intervalStepNum = _intervalStepNum;
     view.isNeedShowMediumLine = _intervalStepNum%2 == 0;
-    [view setFrame:cell.bounds];
     [view setNeedsDisplay];
     return cell;
 }
@@ -236,7 +238,7 @@ NS_UNAVAILABLE @interface RulerCollectionView : UICollectionView
 - (CGSize)collectionView:(UICollectionView *)collectionView layout:(UICollectionViewLayout *)collectionViewLayout sizeForItemAtIndexPath:(NSIndexPath *)indexPath
 {
     if (indexPath.row == 0 || indexPath.row == _itemCount + 1) {
-        return CGSizeMake(self.frame.size.width/2, collectionView.frame.size.height);
+        return CGSizeMake(collectionView.frame.size.width/2, collectionView.frame.size.height);
     }
     else {
         return CGSizeMake(_stepDotNum * _intervalStepNum, collectionView.frame.size.height);
@@ -246,7 +248,9 @@ NS_UNAVAILABLE @interface RulerCollectionView : UICollectionView
 // 滑动到指定的刻度位置
 - (void)scrollViewWillEndDragging:(UIScrollView *)scrollView withVelocity:(CGPoint)velocity targetContentOffset:(inout CGPoint *)targetContentOffset {
     CGPoint target = CGPointMake(targetContentOffset->x, targetContentOffset->y);
-    CGFloat offset = round((target.x+scrollView.contentInset.left) / self.stepDotNum) * self.stepDotNum;
+    //CGFloat offset = round((target.x+scrollView.contentInset.left) / self.stepDotNum) * self.stepDotNum;
+    CGFloat currentValue = [self adjustCurrentValue:round((target.x+scrollView.contentInset.left) / _stepDotNum) + _minRulerValue];
+    CGFloat offset = (currentValue-_minRulerValue) * _stepDotNum;
     *targetContentOffset = CGPointMake(offset - scrollView.contentInset.left, target.y);
 }
 
@@ -275,8 +279,8 @@ NS_UNAVAILABLE @interface RulerCollectionView : UICollectionView
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView
 {
     _currentValue = [self adjustCurrentValue:round((scrollView.contentOffset.x+scrollView.contentInset.left) / _stepDotNum) + _minRulerValue];
-    if (_didSelectValue) {
-        _didSelectValue(_currentValue);
+    if (_selectValueBlock) {
+        _selectValueBlock(_currentValue);
     }
 }
 

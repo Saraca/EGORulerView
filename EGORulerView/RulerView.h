@@ -21,11 +21,11 @@
 @property (assign, nonatomic, readonly) CGFloat currentValue;///< 当前尺子的值
 @property (strong, nonatomic) UICollectionView *collectionView;
 
-@property (copy,   nonatomic) void (^didSelectValue)(CGFloat);
+@property (copy,   nonatomic) void (^selectValueBlock)(CGFloat);
 
 - (void)setCurrentValueWithoutCallBack:(CGFloat)currentValue animated:(BOOL)animated;
 - (void)setCurrentValue:(CGFloat)value animated:(BOOL)animated;
-- (void)configWithMaxValue:(CGFloat)maxValue minValue:(CGFloat)minValue step:(CGFloat)step stepDotNum:(CGFloat)stepDotNum intervalStepNum:(NSInteger)intervalStepNum;
+- (void)configWithMinValue:(CGFloat)minValue maxValue:(CGFloat)maxValue step:(CGFloat)step stepDotNum:(CGFloat)stepDotNum intervalStepNum:(NSInteger)intervalStepNum;
 
 @end
 
