@@ -3,4 +3,4 @@ iOS 带单位的尺子，直尺，基于UICollectionView实现，轻量级，可
 
 效果：
 
-![image](https://github.com/Saraca/EGORulerView/blob/master/EGORulerView/github_ruler_demo.gif)
+![github_ruler_demo.gif](https://github.com/Saraca/EGORulerView/blob/master/EGORulerView/github_ruler_demo.gif)
